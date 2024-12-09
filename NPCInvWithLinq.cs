@@ -317,7 +317,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
 
     private List<WindowSet> UpdateCurrentTradeWindow(List<WindowSet> previousValue)
     {
-        var previousDict = previousValue?.ToDictionary(x => (x.Inventory.Address, x.Inventory.ServerRequestCounter, x.IsVisible, x.TradeWindowItems.Count));
+        var previousDict = previousValue?.ToDictionary(x => (x.Title, x.Inventory.Address, x.Inventory.ServerRequestCounter, x.IsVisible, x.TradeWindowItems.Count));
         var purchaseWindowItems = (_purchaseWindowHideout, _purchaseWindow) switch
         {
             ({ IsVisible: true } w, _) => w,
@@ -339,12 +339,13 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
             var isVisible = uiInventory.IsVisible;
             var visibleValidUiItems = uiInventory.VisibleInventoryItems
                 .Where(x => x.Item?.Path != null).ToList();
-            if (previousDict?.TryGetValue((serverInventory?.Address ?? 0, serverInventory?.ServerRequestCounter ?? -1, isVisible, visibleValidUiItems.Count), out var previousSet) == true)
+            var title = $"-{i + 1}-";
+            if (previousDict?.TryGetValue((title, serverInventory?.Address ?? 0, serverInventory?.ServerRequestCounter ?? -1, isVisible, visibleValidUiItems.Count),
+                    out var previousSet) == true)
             {
                 return previousSet;
             }
 
-            var title = $"-{i + 1}-";
             var newTab = new WindowSet
             {
                 Inventory = serverInventory,

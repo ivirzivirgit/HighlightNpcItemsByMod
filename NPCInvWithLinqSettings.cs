@@ -48,7 +48,7 @@ public class NPCInvWithLinqSettings : ISettings
 
         public void Render(NPCInvWithLinq plugin)
         {
-            if (ImGui.Button("Open Build Folder"))
+            if (ImGui.Button("Open rule folder"))
             {
                 var configDir = plugin.ConfigDirectory;
                 var customConfigFileDirectory = !string.IsNullOrEmpty(_parent.CustomConfigDir)
