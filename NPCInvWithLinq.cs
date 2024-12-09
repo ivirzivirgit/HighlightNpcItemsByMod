@@ -1,17 +1,19 @@
-﻿using ExileCore;
-using ExileCore.PoEMemory;
-using ExileCore.PoEMemory.Elements;
-using ExileCore.PoEMemory.MemoryObjects;
-using ExileCore.Shared.Cache;
-using ExileCore.Shared.Helpers;
+﻿using ExileCore2;
+using ExileCore2.PoEMemory;
+using ExileCore2.PoEMemory.Elements;
+using ExileCore2.PoEMemory.MemoryObjects;
+using ExileCore2.Shared.Cache;
+using ExileCore2.Shared.Helpers;
 using ItemFilterLibrary;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using ExileCore.Shared.Nodes;
+using ExileCore2.Shared.Nodes;
 using static NPCInvWithLinq.ServerAndStashWindow;
+using RectangleF = ExileCore2.Shared.RectangleF;
 
 namespace NPCInvWithLinq;
 
@@ -59,12 +61,10 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         return true;
     }
 
-    public override Job Tick()
+    public override void Tick()
     {
         _purchaseWindowHideout = GameController.Game.IngameState.IngameUi.PurchaseWindowHideout;
         _purchaseWindow = GameController.Game.IngameState.IngameUi.PurchaseWindow;
-
-        return null;
     }
 
     public override void Render()
@@ -83,7 +83,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         foreach (var reward in _rewardItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x))) ?? Enumerable.Empty<CustomItemData>())
         {
             var frameColor = hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address
-                ? (ColorNode)(Settings.FrameColor.Value with { A = 45 })
+                ? (ColorNode)Settings.FrameColor.Value.ToImguiVec4(45).ToColor()
                 : Settings.FrameColor;
 
             Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
@@ -96,7 +96,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         foreach (var reward in _ritualItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x))) ?? Enumerable.Empty<CustomItemData>())
         {
             var frameColor = hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address
-                ? (ColorNode)(Settings.FrameColor.Value with { A = 45 })
+                ? (ColorNode)Settings.FrameColor.Value.ToImguiVec4(45).ToColor()
                 : Settings.FrameColor;
 
             Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
@@ -128,12 +128,12 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         DrawServerItems(serverItemsBox, unSeenItems, hoveredItem);
     }
 
-    private void DrawServerItems(SharpDX.RectangleF serverItemsBox, List<string> unSeenItems, Element hoveredItem)
+    private void DrawServerItems(RectangleF serverItemsBox, List<string> unSeenItems, Element hoveredItem)
     {
         if (hoveredItem == null || !hoveredItem.Tooltip.GetClientRectCache.Intersects(serverItemsBox))
         {
-            var boxColor = new SharpDX.Color(0, 0, 0, 150);
-            var textColor = new SharpDX.Color(255, 255, 255, 230);
+            var boxColor = Color.FromArgb(150 ,0, 0, 0);
+            var textColor = Color.FromArgb(230, 255, 255, 255);
 
             Graphics.DrawBox(serverItemsBox, boxColor);
 
@@ -211,7 +211,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     {
         if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(item.ClientRectangle) && hoveredItem.Entity.Address != item.Entity.Address)
         {
-            Graphics.DrawFrame(item.ClientRectangle, Settings.FrameColor.Value with { A = 45 }, Settings.FrameThickness);
+            Graphics.DrawFrame(item.ClientRectangle, Settings.FrameColor.Value.ToImguiVec4(45).ToColor(), Settings.FrameThickness);
         }
         else
         {
@@ -227,20 +227,20 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         }
         else
         {
-            Graphics.DrawFrame(tabNameElement.GetClientRectCache, Settings.FrameColor.Value with { A = 45 }, Settings.FrameThickness);
+            Graphics.DrawFrame(tabNameElement.GetClientRectCache, Settings.FrameColor.Value.ToImguiVec4(45).ToColor(), Settings.FrameThickness);
         }
     }
 
-    private SharpDX.RectangleF CalculateServerItemsBox(List<string> unSeenItems, PurchaseWindow purchaseWindowItems)
+    private RectangleF CalculateServerItemsBox(List<string> unSeenItems, PurchaseWindow purchaseWindowItems)
     {
-        var startingPoint = purchaseWindowItems.TabContainer.GetClientRectCache.TopRight.ToVector2Num();
+        var startingPoint = purchaseWindowItems.TabContainer.GetClientRectCache.TopRight;
         startingPoint.X += 15;
 
         var longestText = unSeenItems.MaxBy(s => s.Length);
         var textHeight = Graphics.MeasureText(longestText);
         var textPadding = 10;
 
-        return new SharpDX.RectangleF
+        return new RectangleF
         {
             Height = textHeight.Y * unSeenItems.Count,
             Width = textHeight.X + (textPadding * 2),
