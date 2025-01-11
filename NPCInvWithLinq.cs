@@ -80,11 +80,14 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     {
         if (!GameController.IngameState.IngameUi.QuestRewardWindow.IsVisible) return;
 
-        foreach (var reward in _rewardItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x))) ?? Enumerable.Empty<CustomItemData>())
+        foreach (var reward in _rewardItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x) && 
+            Settings.NPCInvRules[_itemFilters.IndexOf(y)].Enabled)) ?? Enumerable.Empty<CustomItemData>())
         {
-            var frameColor = hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address
-                ? (ColorNode)Settings.FrameColor.Value.ToImguiVec4(45).ToColor()
-                : Settings.FrameColor;
+            var frameColor = GetFilterColor(reward);
+            if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
+            {
+                frameColor = frameColor.Value.ToImguiVec4(45).ToColor();
+            }
 
             Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
         }
@@ -93,11 +96,14 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     {
         if (!GameController.IngameState.IngameUi.RitualWindow.IsVisible) return;
 
-        foreach (var reward in _ritualItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x))) ?? Enumerable.Empty<CustomItemData>())
+        foreach (var reward in _ritualItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x) && 
+            Settings.NPCInvRules[_itemFilters.IndexOf(y)].Enabled)) ?? Enumerable.Empty<CustomItemData>())
         {
-            var frameColor = hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address
-                ? (ColorNode)Settings.FrameColor.Value.ToImguiVec4(45).ToColor()
-                : Settings.FrameColor;
+            var frameColor = GetFilterColor(reward);
+            if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
+            {
+                frameColor = frameColor.Value.ToImguiVec4(45).ToColor();
+            }
 
             Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
         }
@@ -132,7 +138,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     {
         if (hoveredItem == null || !hoveredItem.Tooltip.GetClientRectCache.Intersects(serverItemsBox))
         {
-            var boxColor = Color.FromArgb(150 ,0, 0, 0);
+            var boxColor = Color.FromArgb(150, 0, 0, 0);
             var textColor = Color.FromArgb(230, 255, 255, 255);
 
             Graphics.DrawBox(serverItemsBox, boxColor);
@@ -209,25 +215,25 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
 
     private void DrawItemFrame(CustomItemData item, Element hoveredItem)
     {
+        var frameColor = GetFilterColor(item);
         if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(item.ClientRectangle) && hoveredItem.Entity.Address != item.Entity.Address)
         {
-            Graphics.DrawFrame(item.ClientRectangle, Settings.FrameColor.Value.ToImguiVec4(45).ToColor(), Settings.FrameThickness);
+            frameColor = frameColor.Value.ToImguiVec4(45).ToColor();
         }
-        else
-        {
-            Graphics.DrawFrame(item.ClientRectangle, Settings.FrameColor, Settings.FrameThickness);
-        }
+
+        Graphics.DrawFrame(item.ClientRectangle, frameColor, Settings.FrameThickness);
     }
 
     private void DrawTabNameElementFrame(Element tabNameElement, Element hoveredItem)
     {
+        var frameColor = Settings.DefaultFrameColor;
         if (hoveredItem == null || !hoveredItem.Tooltip.GetClientRectCache.Intersects(tabNameElement.GetClientRectCache))
         {
-            Graphics.DrawFrame(tabNameElement.GetClientRectCache, Settings.FrameColor, Settings.FrameThickness);
+            Graphics.DrawFrame(tabNameElement.GetClientRectCache, frameColor, Settings.FrameThickness);
         }
         else
         {
-            Graphics.DrawFrame(tabNameElement.GetClientRectCache, Settings.FrameColor.Value.ToImguiVec4(45).ToColor(), Settings.FrameThickness);
+            Graphics.DrawFrame(tabNameElement.GetClientRectCache, frameColor.Value.ToImguiVec4(45).ToColor(), Settings.FrameThickness);
         }
     }
 
@@ -315,6 +321,11 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         }
     }
 
+    internal void ReloadRules()
+    {
+        LoadRuleFiles();
+    }
+
     private List<WindowSet> UpdateCurrentTradeWindow(List<WindowSet> previousValue)
     {
         var previousDict = previousValue?.ToDictionary(x => (x.Title, x.Inventory.Address, x.Inventory.ServerRequestCounter, x.IsVisible, x.TradeWindowItems.Count));
@@ -368,5 +379,17 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     private bool ItemInFilter(CustomItemData item)
     {
         return _itemFilters?.Any(filter => filter.Matches(item)) ?? false;
+    }
+
+    private ColorNode GetFilterColor(CustomItemData item)
+    {
+        for (int i = 0; i < _itemFilters.Count; i++)
+        {
+            if (Settings.NPCInvRules[i].Enabled && _itemFilters[i].Matches(item))
+            {
+                return Settings.NPCInvRules[i].Color;
+            }
+        }
+        return Settings.DefaultFrameColor;
     }
 }
