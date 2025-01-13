@@ -13,8 +13,6 @@ namespace NPCInvWithLinq;
 
 public class NPCInvWithLinqSettings : ISettings
 {
-    private bool _reloadRequired = false;
-
     public NPCInvWithLinqSettings()
     {
         RuleConfig = new RuleRenderer(this);
@@ -22,13 +20,14 @@ public class NPCInvWithLinqSettings : ISettings
 
     public ToggleNode Enable { get; set; } = new ToggleNode(false);
     public ToggleNode DrawOnTabLabels { get; set; } = new ToggleNode(true);
-    public ColorNode DefaultFrameColor { get; set; } = new ColorNode(Color.Red);
+    public ColorNode TabFrameColor { get; set; } = new ColorNode(Color.Red);
     public RangeNode<int> FrameThickness { get; set; } = new RangeNode<int>(1, 1, 20);
 
     [JsonIgnore]
     public TextNode FilterTest { get; set; } = new TextNode();
 
     [JsonIgnore]
+    [Menu("Reload/Apply filters")]
     public ButtonNode ReloadFilters { get; set; } = new ButtonNode();
 
     [Menu("Use a Custom \"\\config\\custom_folder\" folder ")]
@@ -70,13 +69,14 @@ public class NPCInvWithLinqSettings : ISettings
             ImGui.BulletText("Ordering rule sets so general items will match first rather than last will improve performance");
 
             var tempNpcInvRules = new List<NPCInvRule>(_parent.NPCInvRules); // Create a copy
+            var reloadRequired = false;
 
             for (int i = 0; i < tempNpcInvRules.Count; i++)
             {
                 if (ImGui.ArrowButton($"##upButton{i}", ImGuiDir.Up) && i > 0)
                 {
                     (tempNpcInvRules[i - 1], tempNpcInvRules[i]) = (tempNpcInvRules[i], tempNpcInvRules[i - 1]);
-                    _parent._reloadRequired = true;
+                    reloadRequired = true;
                 }
 
                 ImGui.SameLine();
@@ -86,7 +86,7 @@ public class NPCInvWithLinqSettings : ISettings
                 if (ImGui.ArrowButton($"##downButton{i}", ImGuiDir.Down) && i < tempNpcInvRules.Count - 1)
                 {
                     (tempNpcInvRules[i + 1], tempNpcInvRules[i]) = (tempNpcInvRules[i], tempNpcInvRules[i + 1]);
-                    _parent._reloadRequired = true;
+                    reloadRequired = true;
                 }
 
                 ImGui.SameLine();
@@ -97,21 +97,21 @@ public class NPCInvWithLinqSettings : ISettings
                 if (ImGui.Checkbox($"{tempNpcInvRules[i].Name}##checkbox{i}", ref refToggle))
                 {
                     tempNpcInvRules[i].Enabled = refToggle;
-                    plugin.ReloadRules();
+                    reloadRequired = true;
                 }
 
                 ImGui.SameLine();
-                var color = new Vector4(tempNpcInvRules[i].Color.Value.R / 255.0f, tempNpcInvRules[i].Color.Value.G / 255.0f, tempNpcInvRules[i].Color.Value.B / 255.0f, tempNpcInvRules[i].Color.Value.A / 255.0f);
-                if (ImGui.ColorEdit4($"##colorPicker{i}", ref color))
-                    tempNpcInvRules[i].Color.Value = Color.FromArgb((int)(color.W * 255), (int)(color.X * 255), (int)(color.Y * 255), (int)(color.Z * 255));
+                if (tempNpcInvRules[i].Color.DrawPicker($"##color{i}"))
+                {
+                    plugin.LoadRuleFiles();
+                }
             }
 
             _parent.NPCInvRules = tempNpcInvRules;
 
-            if (_parent._reloadRequired)
+            if (reloadRequired)
             {
-                plugin.ReloadRules();
-                _parent._reloadRequired = false;
+                plugin.LoadRuleFiles();
             }
         }
     }

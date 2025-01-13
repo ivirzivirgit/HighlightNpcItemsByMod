@@ -43,9 +43,11 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     private readonly CachedValue<List<WindowSet>> _storedStashAndWindows;
     private readonly CachedValue<List<CustomItemData>> _rewardItems;
     private readonly CachedValue<List<CustomItemData>> _ritualItems;
-    private List<ItemFilter<CustomItemData>> _itemFilters;
+    private List<FilterEntry> _itemFilters;
     private PurchaseWindow _purchaseWindowHideout;
     private PurchaseWindow _purchaseWindow;
+
+    private record FilterEntry(ItemFilter<CustomItemData> Filter, Color Color);
 
     public NPCInvWithLinq()
     {
@@ -80,32 +82,36 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
     {
         if (!GameController.IngameState.IngameUi.QuestRewardWindow.IsVisible) return;
 
-        foreach (var reward in _rewardItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x) && 
-            Settings.NPCInvRules[_itemFilters.IndexOf(y)].Enabled)) ?? Enumerable.Empty<CustomItemData>())
+        foreach (var reward in _rewardItems?.Value ?? [])
         {
-            var frameColor = GetFilterColor(reward);
-            if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
+            if (GetItemFilter(reward) is { } filter)
             {
-                frameColor = frameColor.Value.ToImguiVec4(45).ToColor();
-            }
+                var frameColor = filter.Color;
+                if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
+                {
+                    frameColor = frameColor.ToImguiVec4(45).ToColor();
+                }
 
-            Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
+                Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
+            }
         }
     }
     private void ProcessRitualWindow(Element hoveredItem)
     {
         if (!GameController.IngameState.IngameUi.RitualWindow.IsVisible) return;
 
-        foreach (var reward in _ritualItems?.Value.Where(x => _itemFilters.Any(y => y.Matches(x) && 
-            Settings.NPCInvRules[_itemFilters.IndexOf(y)].Enabled)) ?? Enumerable.Empty<CustomItemData>())
+        foreach (var reward in _ritualItems?.Value ?? [])
         {
-            var frameColor = GetFilterColor(reward);
-            if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
+            if (GetItemFilter(reward) is { } filter)
             {
-                frameColor = frameColor.Value.ToImguiVec4(45).ToColor();
-            }
+                var frameColor = filter.Color;
+                if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
+                {
+                    frameColor = frameColor.ToImguiVec4(45).ToColor();
+                }
 
-            Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
+                Graphics.DrawFrame(reward.ClientRectangle, frameColor, Settings.FrameThickness);
+            }
         }
     }
 
@@ -177,7 +183,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
 
     private void ProcessVisibleTabItems(IEnumerable<CustomItemData> items, Element hoveredItem)
     {
-        foreach (var visibleItem in items.Where(item => item != null && ItemInFilter(item)))
+        foreach (var visibleItem in items.Where(item => item != null))
         {
             DrawItemFrame(visibleItem, hoveredItem);
         }
@@ -215,18 +221,21 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
 
     private void DrawItemFrame(CustomItemData item, Element hoveredItem)
     {
-        var frameColor = GetFilterColor(item);
-        if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(item.ClientRectangle) && hoveredItem.Entity.Address != item.Entity.Address)
+        if (GetItemFilter(item) is { } filter)
         {
-            frameColor = frameColor.Value.ToImguiVec4(45).ToColor();
-        }
+            var frameColor = filter.Color;
+            if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(item.ClientRectangle) && hoveredItem.Entity.Address != item.Entity.Address)
+            {
+                frameColor = frameColor.ToImguiVec4(45).ToColor();
+            }
 
-        Graphics.DrawFrame(item.ClientRectangle, frameColor, Settings.FrameThickness);
+            Graphics.DrawFrame(item.ClientRectangle, frameColor, Settings.FrameThickness);
+        }
     }
 
     private void DrawTabNameElementFrame(Element tabNameElement, Element hoveredItem)
     {
-        var frameColor = Settings.DefaultFrameColor;
+        var frameColor = Settings.TabFrameColor;
         if (hoveredItem == null || !hoveredItem.Tooltip.GetClientRectCache.Intersects(tabNameElement.GetClientRectCache))
         {
             Graphics.DrawFrame(tabNameElement.GetClientRectCache, frameColor, Settings.FrameThickness);
@@ -270,7 +279,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         }
     }
 
-    private void LoadRuleFiles()
+    internal void LoadRuleFiles()
     {
         var pickitConfigFileDirectory = ConfigDirectory;
         var existingRules = Settings.NPCInvRules;
@@ -310,7 +319,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
 
             _itemFilters = newRules
                 .Where(rule => rule.Enabled)
-                .Select(rule => ItemFilter.LoadFromPath<CustomItemData>(Path.Combine(pickitConfigFileDirectory, rule.Location)))
+                .Select(rule => new FilterEntry(ItemFilter.LoadFromPath<CustomItemData>(Path.Combine(pickitConfigFileDirectory, rule.Location)), rule.Color))
                 .ToList();
 
             Settings.NPCInvRules = newRules;
@@ -319,11 +328,6 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         {
             LogError($"An error occurred while loading rule files: {e.Message}");
         }
-    }
-
-    internal void ReloadRules()
-    {
-        LoadRuleFiles();
     }
 
     private List<WindowSet> UpdateCurrentTradeWindow(List<WindowSet> previousValue)
@@ -376,20 +380,7 @@ public class NPCInvWithLinq : BaseSettingsPlugin<NPCInvWithLinqSettings>
         }).Where(x => x != null).ToList();
     }
 
-    private bool ItemInFilter(CustomItemData item)
-    {
-        return _itemFilters?.Any(filter => filter.Matches(item)) ?? false;
-    }
+    private bool ItemInFilter(CustomItemData item) => GetItemFilter(item) != null;
 
-    private ColorNode GetFilterColor(CustomItemData item)
-    {
-        for (int i = 0; i < _itemFilters.Count; i++)
-        {
-            if (Settings.NPCInvRules[i].Enabled && _itemFilters[i].Matches(item))
-            {
-                return Settings.NPCInvRules[i].Color;
-            }
-        }
-        return Settings.DefaultFrameColor;
-    }
+    private FilterEntry GetItemFilter(CustomItemData item) => _itemFilters?.FirstOrDefault(filter => filter.Filter.Matches(item));
 }
