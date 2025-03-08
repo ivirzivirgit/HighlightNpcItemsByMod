@@ -389,3 +389,6 @@ System.Runtime.Handles.dll
 System.Runtime.Extensions.dll
 System.Runtime.CompilerServices.VisualC.dll
 Errors.txt
+/ExileCore2.dll
+/GameOffsets2.dll
+/ItemFilterLibrary.dll
