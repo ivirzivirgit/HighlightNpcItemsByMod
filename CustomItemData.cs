@@ -22,7 +22,6 @@ public enum EKind
 {
     QuestReward,
     Shop,
-    RitualReward,
-    Haggle
+    RitualReward
 }
 

@@ -46,10 +46,8 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
     private readonly CachedValue<List<WindowSet>> _storedStashAndWindows;
     private readonly CachedValue<List<CustomItemData>> _rewardItems;
     private readonly CachedValue<List<CustomItemData>> _ritualItems;
-    private readonly CachedValue<List<CustomItemData>> _haggleItems;
     private PurchaseWindow _purchaseWindowHideout;
     private PurchaseWindow _purchaseWindow;
-    private PurchaseWindow _haggleWindow;
 
 
     public HighlightNpcItemsByMod()
@@ -58,7 +56,6 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
         _storedStashAndWindows = new TimeCache<List<WindowSet>>(CacheUtils.RememberLastValue<List<WindowSet>>(UpdateCurrentTradeWindow), 50);
         _rewardItems = new TimeCache<List<CustomItemData>>(GetRewardItems, 1000);
         _ritualItems = new TimeCache<List<CustomItemData>>(GetRitualItems, 1000);
-        _haggleItems = new TimeCache<List<CustomItemData>>(GetHaggleItems, 1000);
     }
     public override bool Initialise()
     {
@@ -79,7 +76,6 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
         ProcessPurchaseWindow(hoveredItem);
         ProcessRewardsWindow(hoveredItem);
         ProcessRitualWindow(hoveredItem);
-        ProcessHaggleWindow(hoveredItem);
     }
 
     public override void DrawSettings()
@@ -168,25 +164,6 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
         }
     }
 
-    private void ProcessHaggleWindow(Element hoveredItem)
-    {
-        if (!GameController.IngameState.IngameUi.HaggleWindow.IsVisible) return;
-
-        foreach (var item in _haggleItems?.Value ?? [])
-        {
-            if (IsMatched(item, Settings.HighLightRules) is { } color)
-            {
-                var frameColor = color;
-                if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(item.ClientRectangle) && hoveredItem.Entity.Address != item.Entity.Address)
-                {
-                    frameColor = new Vector4(.5f, .5f, .5f, 0);
-                }
-
-                Graphics.DrawFrame(item.ClientRectangle, ImGuiUtils.Vector4ToColor(frameColor), Settings.FrameThickness);
-            }
-        }
-    }
-
     private List<CustomItemData> GetRewardItems() =>
         GameController.IngameState.IngameUi.QuestRewardWindow.GetPossibleRewards()
             .Where(item => item.Item2 is { Address: not 0, IsValid: true })
@@ -198,12 +175,6 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
             .Where(item => item.Item is { Address: not 0, IsValid: true })
             .Select(item => new CustomItemData(item.Item, GameController, EKind.RitualReward, item.GetClientRectCache))
             .ToList();
-
-    private List<CustomItemData> GetHaggleItems() => GameController.IngameState.IngameUi.HaggleWindow.CurrencyInfo.IsVisible ?
-        GameController.IngameState.IngameUi.HaggleWindow.InventoryItems
-            .Where(item => item.Item is { Address: not 0, IsValid: true })
-            .Select(item => new CustomItemData(item.Item, GameController, EKind.Haggle, item.GetClientRectCache))
-            .ToList() : [];
 
     private void ProcessPurchaseWindow(Element hoveredItem)
     {
