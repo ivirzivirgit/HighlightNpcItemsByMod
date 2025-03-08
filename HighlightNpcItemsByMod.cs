@@ -383,15 +383,17 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
 
     public Vector4? IsMatched(CustomItemData item, List<HighLightRule> ruleSettings)
     {
-        if (item.ModsInfo.ModsDictionary.Count() > 0)
+        var rules = Settings.HighLightRules.Where(x => x.Enabled);
+
+        if (rules.Count() > 0)
         {
-            foreach (var modList in item.ModsInfo.ModsDictionary.Keys.ToList())
+            foreach (var rule in rules)
             {
-                foreach (var mod in modList)
+                if (item.ModsInfo.ModsDictionary.Count() > 0)
                 {
-                    var rules = Settings.HighLightRules.Where(x => x.Enabled);
-                    if (rules.Count() > 0) {
-                        foreach (var rule in rules)
+                    foreach (var modList in item.ModsInfo.ModsDictionary.Keys.ToList())
+                    {
+                        foreach (var mod in modList)
                         {
                             if (mod.RawName.Contains(rule.ModName))
                             {
@@ -410,7 +412,7 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
                                 }
                                 return rule.Color;
                             }
-                        } 
+                        }
                     }
                 }
             }
