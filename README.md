@@ -1,20 +1,26 @@
-enable "Write Hovered Item Mod Names On Debug Window" checkbox if you don't know item mod raw name. after activated, hovering mouse any item, will debug mod names to debug window. <p/>
+To find item mod names, tick the "Write Hovered Item Mod Names On Debug Window" box and hover the mouse over the item. <p/>
 
-enable "Draw on tab labels" checkbox, if highlight tabs have if that tab have any matched item <p/>
+If there are matching items in other tabs, tick the "Draw on tab labels" box to light the tab.<p/>
 
-click "Highlighted Items Mods Bar" to expand or collapse rules section <p/>
+Click the bar to open or close the rules tab.<p/>
 
-use "Add ItemMod" button to add a rule <p/>
-  *first input, checkbox for enable/disable rule <p/>
-  *second input, color for highlighted item frame <p/>
-  *third input, itemMod RawName <p/>
-  *fourth input, itemMod Tier <p/>
-  *fifth input, remove rule. <p/>
+Click the "Add ItemMod" button to add a new rule.<p/>
 
-Examples;
-if you want highlight item with cast speed mod you can add a rule with "CastSpeed". it will highlight all items with cast speed. <p/>
-if you want highlight items with tier 5 or higher tier cast speed , increase tier to 5 <p/>
-if you want highlight items with only tier 5 cast speed, set a rule with "CastSpeed5" <p/>
-rule work with contains so if you set "Speed", all items with contains speed mods (movement, minion cast speed etc.) will highlight <p/>
-if you set an empty rule with tier 8, all mods with tier 8 or more will highlight <p/>
-priority is working as first rule to last rule. put most wanted mods above others. <p/>
+*Use the first box to enable/disable the rule.<p/>
+*Use the second box to change the border color of the matching items.<p/>
+*Use the third box to enter the mod text.<p/>
+*Use the fourth box to enter the mod tier.<p/>
+*Use the "Remove Mod" button to delete the rule.<p/>
+
+Examples;<p/>
+By defining a rule as "CastSpeed", you can highlight all items that contain Cast Speed.<p/>
+
+By defining a rule as "CastSpeed5", you can highlight only items that contain Tier5 Cast Speed.<p/>
+
+By defining a rule as "CastSpeed" and entering Tier 5, you can highlight items with Cast Speed ​​Tier 5 and above.<p/>
+
+By defining a rule as "Speed", you can highlight items with at least one of all speed modes (attack speed, cast speed, movement speed, minion speeds etc.).<p/>
+
+If you define an empty rule and make it Tier 8, all items with Tier 8 and above will be highlighted.<p/>
+
+The first defined rule takes precedence, define the mode you want the most at the top. After a rule is matched, it does not check the other rules to match.<p/>
