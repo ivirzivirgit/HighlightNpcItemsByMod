@@ -95,6 +95,18 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
 
     private void DrawNPCInvRules(HighLightRule ruleSettings, int index)
     {
+        if (ImGui.ArrowButton($"##upButton{index}", ImGuiDir.Up) && index > 0)
+        {
+            (Settings.HighLightRules[index - 1], Settings.HighLightRules[index]) = (Settings.HighLightRules[index], Settings.HighLightRules[index - 1]);
+        }
+        ImGui.SameLine();
+
+        if (ImGui.ArrowButton($"##downButton{index}", ImGuiDir.Down) && index < Settings.HighLightRules.Count - 1)
+        {
+            (Settings.HighLightRules[index + 1], Settings.HighLightRules[index]) = (Settings.HighLightRules[index], Settings.HighLightRules[index + 1]);
+        }
+        ImGui.SameLine();
+
         ImGuiUtils.Checkbox($"##EnableRule{index}", "Enable Rule", ref ruleSettings.Enabled); ImGui.SameLine();
         ImGuiUtils.ColorSwatch($"Frame Color ##{index}", ref ruleSettings.Color); ImGui.SameLine();
         ImGui.PushItemWidth(200);
