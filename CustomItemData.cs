@@ -1,7 +1,10 @@
-﻿using ExileCore2;
+using ExileCore2;
+using ExileCore2.PoEMemory.Components;
 using ExileCore2.PoEMemory.MemoryObjects;
 using ExileCore2.Shared;
 using ItemFilterLibrary;
+using System.Collections.Generic;
+using System.Linq;
 
 public class CustomItemData : ItemData
 {
@@ -19,5 +22,7 @@ public enum EKind
 {
     QuestReward,
     Shop,
-    RitualReward
+    RitualReward,
+    Haggle
 }
+
