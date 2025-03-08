@@ -199,11 +199,11 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
             .Select(item => new CustomItemData(item.Item, GameController, EKind.RitualReward, item.GetClientRectCache))
             .ToList();
 
-    private List<CustomItemData> GetHaggleItems() =>
+    private List<CustomItemData> GetHaggleItems() => GameController.IngameState.IngameUi.HaggleWindow.CurrencyInfo.IsVisible ?
         GameController.IngameState.IngameUi.HaggleWindow.InventoryItems
             .Where(item => item.Item is { Address: not 0, IsValid: true })
             .Select(item => new CustomItemData(item.Item, GameController, EKind.Haggle, item.GetClientRectCache))
-            .ToList();
+            .ToList() : [];
 
     private void ProcessPurchaseWindow(Element hoveredItem)
     {
