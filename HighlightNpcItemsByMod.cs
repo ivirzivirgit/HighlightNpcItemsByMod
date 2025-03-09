@@ -17,6 +17,7 @@ using RectangleF = ExileCore2.Shared.RectangleF;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using ImGuiNET;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace HighlightNpcItemsByMod;
 
@@ -80,11 +81,62 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
 
     public override void DrawSettings()
     {
-        ImGuiUtils.Checkbox($"Write Hovered Item Mod Names On Debug Window", "Hover Item for Inspect Mod Names", ref Settings.InspectHoverItemMods);
+        ImGui.TextWrapped("Highlight Order: Rules top to bottom > Quality > Socket > Item Level > Rarity");
+        if (ImGuiUtils.CollapsingHeader("Plugin Settings", ref Settings.HLGeneralHeaderOpen))
+        {
+            ImGui.Indent();
+            ImGui.PushItemWidth(200);
+            ImGuiUtils.Checkbox($"Write Hovered Item Mod Names To Debug Window", "Hover Item for Inspect Mod Names", ref Settings.InspectHoverItemMods);
+            ImGui.Separator();
+            ImGuiUtils.Checkbox($"Tab Labels", "Draw On Tab Labes", ref Settings.DrawOnTabLabels); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"Tab Frame Color", ref Settings.TabFrameColor);
+            ImGui.Separator();
+            ImGui.InputInt($"Frame Thickness", ref Settings.FrameThickness, 1);
+            ImGui.PopItemWidth();
+            ImGui.Unindent();
+        }
 
-        ImGuiUtils.Checkbox($"Draw On Tab Labes", "Draw On Tab Labes", ref Settings.DrawOnTabLabels);
+        if (ImGuiUtils.CollapsingHeader("Highlight by Item Properties", ref Settings.HLPropertiesHeaderOpen))
+        {
+            ImGui.Indent();
+            ImGui.PushItemWidth(200);
+            ImGuiUtils.Checkbox($"Quality", "Highlight by Quality", ref Settings.HLbyQuality); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"QualityColor", ref Settings.HLQualityColor); ImGui.SameLine();
+            ImGui.InputInt($"Quality Percent", ref Settings.HLQualityPercent, 1);
+            ImGui.Separator();
 
-        if (ImGuiUtils.CollapsingHeader("Highlighted ItemMods", ref Settings.HighLightRulesHeaderOpen))
+            ImGuiUtils.Checkbox($"Socket", "Highlight by Socket Count", ref Settings.HLbySocket); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"SocketedColor", ref Settings.HLSocketedColor); ImGui.SameLine();
+            ImGui.InputInt($"Socket Count", ref Settings.HLSocketCount, 1);
+            ImGui.Separator();
+
+            ImGuiUtils.Checkbox($"ItemLevel", "Highlight by Item Level", ref Settings.HLbyItemLevel); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"ItemLevelColor", ref Settings.HLItemLevelColor); ImGui.SameLine();
+            ImGui.InputInt($"Item Level", ref Settings.HLItemLevel, 1, 5);
+            ImGui.PopItemWidth();
+            ImGui.Unindent();
+        }
+
+        if (ImGuiUtils.CollapsingHeader("Highlight by Item Rarity", ref Settings.HLRarityHeaderOpen))
+        {
+            ImGui.Indent();
+            ImGui.PushItemWidth(200);
+            ImGuiUtils.Checkbox($"Normal", "Highlight Normal Items", ref Settings.HLNormalItems); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"RarityNormalColor", ref Settings.HLRarityNormalColor);
+
+            ImGuiUtils.Checkbox($"Magic", "Highlight Magic Items", ref Settings.HLMagicItems); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"RarityMagicColor", ref Settings.HLRarityMagicColor);
+
+            ImGuiUtils.Checkbox($"Rare", "Highlight Rare Items", ref Settings.HLRareItems); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"RarityRareColor", ref Settings.HLRarityRareColor);
+
+            ImGuiUtils.Checkbox($"Unique", "Highlight Unique Items", ref Settings.HLUniqueItems); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"RarityUniqueColor", ref Settings.HLRarityUniqueColor);
+            ImGui.PopItemWidth();
+            ImGui.Unindent();
+        }
+
+        if (ImGuiUtils.CollapsingHeader("Highlight by Item Mods", ref Settings.HLRulesHeaderOpen))
         {
             ImGui.Indent();
             for (int i = 0; i < Settings.HighLightRules.Count; i++) { DrawNPCInvRules(Settings.HighLightRules[i], i); }
@@ -111,7 +163,7 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
         ImGuiUtils.ColorSwatch($"Frame Color ##{index}", ref ruleSettings.Color); ImGui.SameLine();
         ImGui.PushItemWidth(200);
         ImGui.InputText($"##Item Mod Name{index}", ref ruleSettings.ModName, 100); ImGui.SameLine();
-        ImGui.InputInt($"##At Least Mod Tier{index}", ref ruleSettings.AtLeastTier, 1); ImGui.SameLine();
+        ImGui.InputInt($"##At Least Tier{index}", ref ruleSettings.AtLeastTier, 1); ImGui.SameLine();
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
@@ -150,7 +202,7 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
                 var frameColor = color;
                 if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
                 {
-                    frameColor = new Vector4(.5f, .5f, .5f, 0);
+                    frameColor = ImGuiUtils.Vector4ToColor(frameColor).ToImguiVec4(45);
                 }
 
                 Graphics.DrawFrame(reward.ClientRectangle, ImGuiUtils.Vector4ToColor(frameColor), Settings.FrameThickness);
@@ -168,7 +220,7 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
                 var frameColor = color;
                 if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(reward.ClientRectangle) && hoveredItem.Entity.Address != reward.Entity.Address)
                 {
-                    frameColor = new Vector4(.5f, .5f, .5f, 0);
+                    frameColor = ImGuiUtils.Vector4ToColor(frameColor).ToImguiVec4(45);
                 }
 
                 Graphics.DrawFrame(reward.ClientRectangle, ImGuiUtils.Vector4ToColor(frameColor), Settings.FrameThickness);
@@ -288,7 +340,7 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
             var frameColor = color;
             if (hoveredItem != null && hoveredItem.Tooltip.GetClientRectCache.Intersects(item.ClientRectangle) && hoveredItem.Entity.Address != item.Entity.Address)
             {
-                frameColor = new Vector4(.5f, .5f, .5f, 0);
+                frameColor = ImGuiUtils.Vector4ToColor(frameColor).ToImguiVec4(45);
             }
 
             Graphics.DrawFrame(item.ClientRectangle, ImGuiUtils.Vector4ToColor(frameColor), Settings.FrameThickness);
@@ -300,11 +352,11 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
         var frameColor = Settings.TabFrameColor;
         if (hoveredItem == null || !hoveredItem.Tooltip.GetClientRectCache.Intersects(tabNameElement.GetClientRectCache))
         {
-            Graphics.DrawFrame(tabNameElement.GetClientRectCache, frameColor, Settings.FrameThickness);
+            Graphics.DrawFrame(tabNameElement.GetClientRectCache, ImGuiUtils.Vector4ToColor(frameColor), Settings.FrameThickness);
         }
         else
         {
-            Graphics.DrawFrame(tabNameElement.GetClientRectCache, frameColor.Value.ToImguiVec4(45).ToColor(), Settings.FrameThickness);
+            Graphics.DrawFrame(tabNameElement.GetClientRectCache, ImGuiUtils.Vector4ToColor(frameColor).ToImguiVec4(45).ToColor(), Settings.FrameThickness);
         }
     }
 
@@ -415,6 +467,55 @@ public class HighlightNpcItemsByMod : BaseSettingsPlugin<HighlightNpcItemsByModS
                         }
                     }
                 }
+            }
+        }
+        if (Settings.HLbyQuality)
+        {
+            if (item.ItemQuality >= Settings.HLQualityPercent)
+            {
+                return Settings.HLQualityColor;
+            }
+        }
+        if (Settings.HLbySocket)
+        {
+            if (item.SocketInfo.SocketNumber >= Settings.HLSocketCount)
+            {
+                return Settings.HLSocketedColor;
+            }
+        }
+        if (Settings.HLbyItemLevel)
+        {
+            if (item.ItemLevel >= Settings.HLItemLevel)
+            {
+                return Settings.HLItemLevelColor;
+            }
+        }
+        if (Settings.HLUniqueItems)
+        {
+            if (item.Rarity == ExileCore2.Shared.Enums.ItemRarity.Unique)
+            {
+                return Settings.HLRarityUniqueColor;
+            }
+        }
+        if (Settings.HLRareItems)
+        {
+            if (item.Rarity == ExileCore2.Shared.Enums.ItemRarity.Rare)
+            {
+                return Settings.HLRarityRareColor;
+            }
+        }
+        if (Settings.HLMagicItems)
+        {
+            if (item.Rarity == ExileCore2.Shared.Enums.ItemRarity.Magic)
+            {
+                return Settings.HLRarityMagicColor;
+            }
+        }
+        if (Settings.HLNormalItems)
+        {
+            if (item.Rarity == ExileCore2.Shared.Enums.ItemRarity.Normal)
+            {
+                return Settings.HLRarityNormalColor;
             }
         }
         return null;
