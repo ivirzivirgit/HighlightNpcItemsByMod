@@ -56,12 +56,12 @@ Click the "Add ItemMod" button to add a new rule.<p/>
   <tr>
     <td>Speed</td>
     <td></td>
-    <td>highlight items all items that contains "Speed" (attack speed, cast speed, movement speed, minion speeds etc.)</td>
+    <td>highlight all items that contains "Speed" (attack speed, cast speed, movement speed, minion speeds etc.)</td>
   </tr>
   <tr>
     <td></td>
     <td>8</td>
-    <td>highlight items all items that have at least one tier8+ (8 and above) mod</td>
+    <td>highlight all items that have at least one tier8+ (8 and above) mod</td>
   </tr>
 </table>
 <p/>
