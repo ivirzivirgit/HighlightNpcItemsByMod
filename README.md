@@ -4,7 +4,7 @@
 
 Plugin For ExileCore2, Similar to NpcInvWithLinq, copied most of code from https://github.com/diesal/AuraTracker <p/>
 
-To find item mod names, tick the "Write Hovered Item Mod Names On Debug Window" box and hover the mouse over the item. <p/>
+To find item mod names, activate the "Write Hovered Item Mod Names To Debug Window" checkbox and hover the mouse over the item. <p/>
 
 Tick the "Tab labels" box, if you want to highlight tab when there are matching items in that tab. You can change color or thickess for tab highlighting. thickness also affect item frames<p/>
 
