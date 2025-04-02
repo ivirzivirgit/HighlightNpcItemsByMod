@@ -1,6 +1,5 @@
 ![mod1](https://github.com/user-attachments/assets/e6beacbd-4a57-41c6-86bd-76883c775249)
 ![mod3](https://github.com/user-attachments/assets/0bff9d5a-851e-4bef-95f0-1cfc9e53c2ef)
-![mod2](https://github.com/user-attachments/assets/92caf70f-694e-4578-9537-6fd6e6ab4d1f)
 
 
 Plugin For ExileCore2, Similar to NpcInvWithLinq, copied most of code from https://github.com/diesal/AuraTracker <p/>
@@ -74,3 +73,7 @@ if there are not any matched item by property then look for rarity settings. <p/
 basically <b>Rules>Quality>Socked>ItemLevel>Rarity</b><p/>
 <p/>
 if a rule is matched, it does not check the other rules for more match. <p/>
+
+
+if you hide debug window, you can't see item raw names while debug checkbox active. to see item raw names on debug windows make sure "Hide all debugging" at "Core" settings not checked and "Minimum Log Level" is set "Debug" or below, under "Log Settings" section.
+![mod2](https://github.com/user-attachments/assets/92caf70f-694e-4578-9537-6fd6e6ab4d1f)
