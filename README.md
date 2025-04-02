@@ -77,3 +77,6 @@ if a rule is matched, it does not check the other rules for more match. <p/>
 
 if you hide debug window, you can't see item raw names while debug checkbox active. to see item raw names on debug windows make sure "Hide all debugging" at "Core" settings not checked and "Minimum Log Level" is set "Debug" or below, under "Log Settings" section.
 ![mod2](https://github.com/user-attachments/assets/92caf70f-694e-4578-9537-6fd6e6ab4d1f)
+
+
+Added "some of known item mod names.csv" file to github if you're looking for item mod names. Except debug option, you can also use this file for searching unknown item mods raw names. it doesn't include all item mod names but there are 750+ item mod name.
